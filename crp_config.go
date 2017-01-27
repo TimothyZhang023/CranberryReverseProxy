@@ -7,7 +7,12 @@ import (
 )
 
 type CRPConfig struct {
-	Port          int // proxy listen port
+	LinkPort int
+	LinkAddr string
+
+	Port int
+	Addr string
+
 	TargetPort    int
 	TargetString  string
 	ReaderBufSize int
@@ -38,16 +43,22 @@ func NewCRPConfig(filename string) *CRPConfig {
 		log.SetRotateByDay()
 	}
 
-	cpus := c.DefaultInt("proxy::cpus", runtime.NumCPU())
+	cpus := c.DefaultInt("common::cpus", runtime.NumCPU())
 	runtime.GOMAXPROCS(cpus)
 	log.Warningf("Set runtime GOMAXPROCS to %d, total cpu num %d", cpus, runtime.NumCPU())
 
 	crpConfig := &CRPConfig{
-		Port:          c.DefaultInt("proxy::port", 10086),
-		ReaderBufSize: c.DefaultInt("proxy::readerbuffer", 1048576),
-		WriterBufSize: c.DefaultInt("proxy::writerbuffer", 1048576),
-		TargetString:  c.DefaultString("target::ip", "127.0.0.1"),
-		TargetPort:    c.DefaultInt("target::port", 6379),
+		Port: c.DefaultInt("proxy::port", 10086),
+		Addr: c.DefaultString("proxy::addr", "0.0.0.0"),
+
+		LinkPort: c.DefaultInt("link::port", 10087),
+		LinkAddr: c.DefaultString("link::addr", "0.0.0.0"),
+
+		ReaderBufSize: c.DefaultInt("common::readerbuffer", 1048576),
+		WriterBufSize: c.DefaultInt("common::writerbuffer", 1048576),
+
+		TargetString: c.DefaultString("target::ip", "127.0.0.1"),
+		TargetPort:   c.DefaultInt("target::port", 6379),
 	}
 
 	log.Infof("Config %+v", crpConfig)

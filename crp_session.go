@@ -7,39 +7,28 @@ import (
 	"net"
 	"sync/atomic"
 	"time"
+	"io"
 )
 
 type Session struct {
-	c        net.Conn // tcp for per client
-	r        *bufio.Reader
-	w        *bufio.Writer
-	ps       *CRPServer
-	upstream *Connection
+	c      net.Conn // tcp for per client
+	Rd     *bufio.Reader
+	Wt     *bufio.Writer
+	ps     *CRPServer
 
-	ctime int64
-	mtime int64
+	ctime  int64
+	mtime  int64
 
 	closed int32 //1 for closed
 }
 
 func NewSession(ps *CRPServer, conn net.Conn) *Session {
-	cop := Options{
-		Network: "tcp",
-		Addr:    "127.0.0.1:6379",
-	}
-
-	upstream, err := NewConnection(&cop)
-	if err != nil {
-		log.Error(err)
-		return nil
-	}
 
 	s := &Session{
 		c:        conn,
-		r:        bufio.NewReaderSize(conn, ps.Conf.ReaderBufSize),
-		w:        bufio.NewWriterSize(conn, ps.Conf.WriterBufSize),
+		Rd:        bufio.NewReaderSize(conn, ps.Conf.ReaderBufSize),
+		Wt:        bufio.NewWriterSize(conn, ps.Conf.WriterBufSize),
 		ps:       ps,
-		upstream: upstream,
 		ctime:    time.Now().Unix(),
 		mtime:    time.Now().Unix(),
 	}
@@ -47,13 +36,13 @@ func NewSession(ps *CRPServer, conn net.Conn) *Session {
 	return s
 }
 
-func (s *Session) readLoop() error {
+func (s *Session) readLoop(upstream *Connection) error {
 	//defer util.PanicProcess(s.readLoop, nil)
 	//defer s.Cleanup()
 	for {
 		var buf = make([]byte, 1024)
 
-		n, err := s.r.Read(buf)
+		n, err := s.Rd.Read(buf)
 
 		if err != nil {
 			log.Error(err)
@@ -64,22 +53,22 @@ func (s *Session) readLoop() error {
 			continue
 		}
 
-		s.upstream.Wt.Write(buf[0:n])
-		s.upstream.Wt.Flush()
+		upstream.Wt.Write(buf[0:n])
+		upstream.Wt.Flush()
 
 	}
 
 	return nil
 }
 
-func (s *Session) writeLoop() error {
+func (s *Session) writeLoop(rd io.Reader) error {
 	//defer util.PanicProcess(s.readLoop, nil)
 	//defer s.Cleanup()
 
 	for {
 		var buf = make([]byte, 1024)
 
-		n, err := s.upstream.Rd.Read(buf)
+		n, err := rd.Read(buf)
 
 		if err != nil {
 			log.Error(err)
@@ -90,8 +79,8 @@ func (s *Session) writeLoop() error {
 			continue
 		}
 
-		s.w.Write(buf[0:n])
-		s.w.Flush()
+		s.Wt.Write(buf[0:n])
+		s.Wt.Flush()
 
 	}
 

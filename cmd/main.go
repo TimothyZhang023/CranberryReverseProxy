@@ -35,6 +35,7 @@ func main() {
 	s.Init()
 	s.Wg.Wrap(s.MonitorQuit)
 	s.Wg.Wrap(s.Run)
+	s.Wg.Wrap(s.LinkRun)
 
 	s.WaitingForQuit()
 }
