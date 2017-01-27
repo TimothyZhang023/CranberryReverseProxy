@@ -7,7 +7,7 @@ import (
 	"net"
 	"sync/atomic"
 	"time"
- )
+)
 
 type Session struct {
 	c        net.Conn // tcp for per client
@@ -26,7 +26,6 @@ func NewSession(ps *CRPServer, conn net.Conn) *Session {
 	cop := Options{
 		Network: "tcp",
 		Addr:    "127.0.0.1:6379",
-
 	}
 
 	upstream, err := NewConnection(&cop)
@@ -61,13 +60,9 @@ func (s *Session) readLoop() error {
 			break
 		}
 
-
 		if n <= 0 {
 			continue
 		}
-
-		//log.Info(string(buf))
-
 
 		s.upstream.Wt.Write(buf[0:n])
 		s.upstream.Wt.Flush()
@@ -94,7 +89,6 @@ func (s *Session) writeLoop() error {
 		if n <= 0 {
 			continue
 		}
-
 
 		s.w.Write(buf[0:n])
 		s.w.Flush()
