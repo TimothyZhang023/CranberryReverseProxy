@@ -14,7 +14,7 @@ type CRPConfig struct {
 	Addr string
 
 	TargetPort    int
-	TargetString  string
+	TargetAddr    string
 	ReaderBufSize int
 	WriterBufSize int
 	FileName      string
@@ -57,8 +57,8 @@ func NewCRPConfig(filename string) *CRPConfig {
 		ReaderBufSize: c.DefaultInt("common::readerbuffer", 1048576),
 		WriterBufSize: c.DefaultInt("common::writerbuffer", 1048576),
 
-		TargetString: c.DefaultString("target::ip", "127.0.0.1"),
-		TargetPort:   c.DefaultInt("target::port", 6379),
+		TargetAddr: c.DefaultString("target::ip", "127.0.0.1"),
+		TargetPort: c.DefaultInt("target::port", 6379),
 	}
 
 	log.Infof("Config %+v", crpConfig)

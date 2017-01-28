@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	Cfg     = flag.String("config", "setting.ini", "proxy config file")
+	Cfg     = flag.String("config", "server.conf", "proxy config file")
 	Version = flag.Bool("version", false, "show current version")
 )
 
@@ -35,7 +35,7 @@ func main() {
 	s.Init()
 	s.Wg.Wrap(s.MonitorQuit)
 	s.Wg.Wrap(s.Run)
-	s.Wg.Wrap(s.LinkRun)
+	s.Wg.Wrap(s.ServerLink)
 
 	s.WaitingForQuit()
 }

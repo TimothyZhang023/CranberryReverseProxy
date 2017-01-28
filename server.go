@@ -44,9 +44,9 @@ func (ps *CRPServer) Init() {
 	linkListenOn := fmt.Sprintf("%s:%d", ps.Conf.LinkAddr, ps.Conf.LinkPort)
 	ll, err := net.Listen("tcp4", linkListenOn)
 	if err != nil {
-		log.Fatalf("Proxy Server LinkListen on %s failed ", listenOn)
+		log.Fatalf("Proxy Server LinkListen on %s failed ", linkListenOn)
 	}
-	log.Info("Proxy Server Listen on", listenOn)
+	log.Info("Proxy Server LinkListen on", linkListenOn)
 	ps.LinkListen = ll
 
 }
@@ -57,8 +57,8 @@ func (ps *CRPServer) MonitorQuit() {
 	ps.Quit <- true
 }
 
-func (ps *CRPServer) LinkRun() {
-	log.Info("Proxy Server Run ....")
+func (ps *CRPServer) ServerLink() {
+	log.Info("Proxy Server LinkRun ....")
 
 	ch := make(chan net.Conn, 4096)
 	defer close(ch)
@@ -69,7 +69,7 @@ func (ps *CRPServer) LinkRun() {
 			if ps.LinkSession != nil {
 				ps.LinkSession.Close()
 			}
-			ps.LinkSession = NewSession(ps, c)
+			ps.LinkSession = NewSession(ps.Conf, c)
 
 		}
 	}()
@@ -104,21 +104,14 @@ func (ps *CRPServer) Run() {
 	go func() {
 		for c := range ch {
 
-			//cop := Options{
-			//	Network: "tcp",
-			//	Addr:    "127.0.0.1:6379",
-			//}
-			//
-			//upstream, err := NewConnection(&cop)
-			//if err != nil {
-			//	log.Error(err)
-			//	return nil
-			//}
-
 			if ps.LinkSession != nil {
-				s := NewSession(ps, c)
-				go s.readLoop(ps.LinkSession.Wt)
-				go s.writeLoop(ps.LinkSession.Rd)
+				s := NewSession(ps.Conf, c)
+
+				go s.readLoop(ps.LinkSession.c)
+				go s.writeLoop(ps.LinkSession.c)
+
+				go ps.LinkSession.readLoop(s.c)
+				go ps.LinkSession.writeLoop(s.c)
 
 			} else {
 				log.Error("LinkSession is nil")
