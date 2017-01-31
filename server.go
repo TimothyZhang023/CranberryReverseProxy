@@ -24,6 +24,7 @@ func NewCRPServer(config *CRPConfig) *CRPServer {
 
 	crp := &CRPServer{
 		Conf: config,
+		Quit: make(chan bool, 2),
 	}
 
 	return crp
@@ -58,7 +59,7 @@ func (ps *CRPServer) MonitorQuit() {
 }
 
 func (ps *CRPServer) ServerLink() {
-	log.Info("Proxy Server LinkRun ....")
+	log.Info("Proxy Server Link End ....")
 
 	ch := make(chan net.Conn, 4096)
 	defer close(ch)
@@ -92,6 +93,9 @@ func (ps *CRPServer) ServerLink() {
 
 		ch <- conn
 	}
+
+	log.Info("Proxy Server Link End ....")
+
 }
 
 func (ps *CRPServer) Run() {
@@ -139,7 +143,11 @@ func (ps *CRPServer) Run() {
 
 		ch <- conn
 	}
+
+	log.Info("Proxy Server End ....")
+
 }
+
 func (ps *CRPServer) Close() {
 
 	var err error
@@ -163,6 +171,7 @@ func (ps *CRPServer) Close() {
 }
 
 func (ps *CRPServer) WaitingForQuit() {
+	log.Info("Waiting For Quit")
 
 	for {
 		select {

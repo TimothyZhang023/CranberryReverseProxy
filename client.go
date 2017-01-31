@@ -20,6 +20,8 @@ func NewCRPClient(config *CRPConfig) *CRPClient {
 
 	crp := &CRPClient{
 		Conf: config,
+		Quit: make(chan bool, 2),
+
 	}
 
 	return crp
